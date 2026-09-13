@@ -2,15 +2,14 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Karol Vasconcellos • Links</title>
   <link rel="stylesheet" href="/styles.css">
   
-  <!-- MESMO ESCAPE ENGINE INLINE PARA GARANTIA DE INTERCEPTAÇÃO -->
   <script>
     (function() {
       var ua = navigator.userAgent || '';
-      if (/bot|crawl|spider|facebookexternalhit|twitterbot|whatsapp|slack|discord|telegrambot/i.test(ua)) return;
+      if (/bot|crawl|spider|facebookexternalhit|twitterbot|whatsapp|slack|discord|telegrambot|linkedinbot/i.test(ua)) return;
       if (!/Instagram/i.test(ua)) return;
       if (sessionStorage.getItem('__deeplink_done') === 'true') return;
       
@@ -19,32 +18,143 @@
       if (!isIOS && !isAndroid) return;
       
       var currentUrl = window.location.href;
+      var encodedUrl = encodeURIComponent(currentUrl);
+      var hostPath = window.location.host + window.location.pathname + window.location.search;
       
       function attemptEscape() {
-        var escapeUrl = null;
         if (isIOS) {
-          escapeUrl = currentUrl.replace(/^https:\/\//i, 'x-safari-https://');
-          window.location.href = escapeUrl;
+          window.location.href = 'instagram://extbrowser/?url=' + encodedUrl;
           setTimeout(function() {
             if (document.visibilityState === 'visible') {
-              window.location.href = currentUrl.replace(/^https:\/\//i, 'googlechrome://');
+              window.location.href = 'x-safari-https://' + hostPath;
             }
-          }, 500);
+          }, 400);
+          setTimeout(function() {
+            if (document.visibilityState === 'visible') {
+              window.location.href = 'googlechromes://' + hostPath;
+            }
+          }, 800);
         } else if (isAndroid) {
-          try {
-            var u = new URL(currentUrl);
-            escapeUrl = 'intent://' + u.host + u.pathname + u.search + '#Intent;scheme=https;S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
-            window.location.href = escapeUrl;
-          } catch(e) {}
+          var intent1 = 'intent://' + hostPath + '#Intent;scheme=https;package=com.instagram.android;S.browser_fallback_url=' + encodedUrl + ';end';
+          window.location.href = intent1;
           setTimeout(function() {
             if (document.visibilityState === 'visible') {
-              try {
-                var u2 = new URL(currentUrl);
-                var chromeIntent = 'intent://' + u2.host + u2.pathname + u2.search + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
-                window.location.href = chromeIntent;
-              } catch(e) {}
+              var intent2 = 'intent://' + hostPath + '#Intent;scheme=https;S.browser_fallback_url=' + encodedUrl + ';end';
+              window.location.href = intent2;
             }
-          }, 500);
+          }, 400);
+          setTimeout(function() {
+            if (document.visibilityState === 'visible') {
+              var intent3 = 'intent://' + hostPath + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodedUrl + ';end';
+              window.location.href = intent3;
+            }
+          }, 800);
+        }
+      }
+      
+      sessionStorage.setItem('__deeplink_done', 'true');
+      attemptEscape();
+      
+      setTimeout(function() {
+        if (document.visibilityState === 'visible') {
+          var wrapper = document.createElement('div');
+          wrapper.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:flex-end;';
+          var btnOpen = document.createElement('button');
+          btnOpen.textContent = 'Abrir no navegador';
+          btnOpen.style.cssText = 'background:rgba(47,128,208,0.9);color:#fff;border:none;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;backdrop-filter:blur(4px);box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+          var btnStay = document.createElement('button');
+          btnStay.textContent = 'Continuar aqui';
+          btnStay.style.cssText = 'background:rgba(30,30,30,0.8);color:#aaa;border:1px solid #444;padding:8px 16px;border-radius:20px;font-size:12px;cursor:pointer;backdrop-filter:blur(4px);';
+          btnOpen.onclick = function() { attemptEscape(); };
+          btnStay.onclick = function() { wrapper.remove(); };
+          wrapper.appendChild(btnOpen);
+          wrapper.appendChild(btnStay);
+          document.body.appendChild(wrapper);
+        }
+      }, 1200);
+    })();
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="profile-wrap">
+      <img id="profileImg" class="profile-img" src="./assets/profile.avif" alt="Karol Vasconcellos" loading="eager">
+    </div>
+    
+    <h1 class="name brand">Karol Vasconcellos</h1>
+    
+    <div class="social-row">
+      <a href="https://instagram.com/soykarolinareal" class="icon-btn" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+        </svg>
+      </a>
+    </div>
+
+    <div id="linksContainer" class="links">
+      <div class="loading">Carregando...</div>
+    </div>
+
+    <footer class="footer">
+      soykarolinareal.com
+    </footer>
+  </div>
+
+  <script src="/links.js"></script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karol Vasconcellos • Links</title>
+  <link rel="stylesheet" href="/styles.css">
+  
+  <script>
+    (function() {
+      var ua = navigator.userAgent || '';
+      if (/bot|crawl|spider|facebookexternalhit|twitterbot|whatsapp|slack|discord|telegrambot|linkedinbot/i.test(ua)) return;
+      if (!/Instagram/i.test(ua)) return;
+      if (sessionStorage.getItem('__deeplink_done') === 'true') return;
+      
+      var isIOS = /iPhone|iPad|iPod/i.test(ua);
+      var isAndroid = /Android/i.test(ua);
+      if (!isIOS && !isAndroid) return;
+      
+      var currentUrl = window.location.href;
+      var encodedUrl = encodeURIComponent(currentUrl);
+      var hostPath = window.location.host + window.location.pathname + window.location.search;
+      
+      function attemptEscape() {
+        if (isIOS) {
+          window.location.href = 'instagram://extbrowser/?url=' + encodedUrl;
+          setTimeout(function() {
+            if (document.visibilityState === 'visible') {
+              window.location.href = 'x-safari-https://' + hostPath;
+            }
+          }, 400);
+          setTimeout(function() {
+            if (document.visibilityState === 'visible') {
+              window.location.href = 'googlechromes://' + hostPath;
+            }
+          }, 800);
+        } else if (isAndroid) {
+          var intent1 = 'intent://' + hostPath + '#Intent;scheme=https;package=com.instagram.android;S.browser_fallback_url=' + encodedUrl + ';end';
+          window.location.href = intent1;
+          setTimeout(function() {
+            if (document.visibilityState === 'visible') {
+              var intent2 = 'intent://' + hostPath + '#Intent;scheme=https;S.browser_fallback_url=' + encodedUrl + ';end';
+              window.location.href = intent2;
+            }
+          }, 400);
+          setTimeout(function() {
+            if (document.visibilityState === 'visible') {
+              var intent3 = 'intent://' + hostPath + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodedUrl + ';end';
+              window.location.href = intent3;
+            }
+          }, 800);
         }
       }
       
