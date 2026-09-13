@@ -6,10 +6,11 @@
   var TARGET_REL = './links.html';
   var ua = navigator.userAgent || '';
 
-  // Detecção de robô (SÓ automação)
+  // Detecção de robô (SÓ automação real — preservando previews legítimos)
   function isBot() {
     if (navigator.webdriver === true) return true;
-    return /bot|crawler|spider|headless|puppeteer|selenium|phantomjs|curl|wget|python-requests|scrapy|httpclient/i.test(ua);
+    // Removidos curl, wget, python-requests, httpclient para evitar falsos positivos
+    return /bot|crawler|spider|headless|puppeteer|selenium|phantomjs/i.test(ua);
   }
 
   function init() {
@@ -19,8 +20,8 @@
       return;
     }
 
-    // TODOS os outros (incluindo Instagram) vão direto para links.html.
-    // O script inline no <head> já tentou o escape. Se falhou, cai aqui normalmente.
+    // Todos os outros (incluindo Instagram, Safari, Chrome, WhatsApp preview) 
+    // prosseguem normalmente para links.html
     window.location.replace(TARGET_REL);
   }
 
