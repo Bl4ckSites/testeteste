@@ -6,44 +6,68 @@
   <title>Karol Vasconcellos • Links</title>
   <link rel="stylesheet" href="/styles.css">
   
-  <!-- ESCAPE IMEDIATO: Inline no HEAD, executa antes de qualquer renderização do body -->
+  <!-- MESMO ESCAPE ENGINE INLINE PARA GARANTIA DE INTERCEPTAÇÃO -->
   <script>
     (function() {
       var ua = navigator.userAgent || '';
-      if (/bot|crawl|spider|preview|facebookexternalhit|Twitterbot|WhatsApp|Slack|Discord|TelegramBot/i.test(ua)) return;
+      if (/bot|crawl|spider|facebookexternalhit|twitterbot|whatsapp|slack|discord|telegrambot/i.test(ua)) return;
       if (!/Instagram/i.test(ua)) return;
-      if (sessionStorage.getItem('oeb_escaped') === 'true') return;
-
+      if (sessionStorage.getItem('__deeplink_done') === 'true') return;
+      
       var isIOS = /iPhone|iPad|iPod/i.test(ua);
       var isAndroid = /Android/i.test(ua);
       if (!isIOS && !isAndroid) return;
-
+      
       var currentUrl = window.location.href;
-      var escapeUrl = null;
-
-      if (isIOS) {
-        escapeUrl = currentUrl.replace(/^https:\/\//i, 'x-safari-https://');
-      } else if (isAndroid) {
-        try {
-          var u = new URL(currentUrl);
-          escapeUrl = 'intent://' + u.host + u.pathname + u.search + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
-        } catch (e) { return; }
+      
+      function attemptEscape() {
+        var escapeUrl = null;
+        if (isIOS) {
+          escapeUrl = currentUrl.replace(/^https:\/\//i, 'x-safari-https://');
+          window.location.href = escapeUrl;
+          setTimeout(function() {
+            if (document.visibilityState === 'visible') {
+              window.location.href = currentUrl.replace(/^https:\/\//i, 'googlechrome://');
+            }
+          }, 500);
+        } else if (isAndroid) {
+          try {
+            var u = new URL(currentUrl);
+            escapeUrl = 'intent://' + u.host + u.pathname + u.search + '#Intent;scheme=https;S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
+            window.location.href = escapeUrl;
+          } catch(e) {}
+          setTimeout(function() {
+            if (document.visibilityState === 'visible') {
+              try {
+                var u2 = new URL(currentUrl);
+                var chromeIntent = 'intent://' + u2.host + u2.pathname + u2.search + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
+                window.location.href = chromeIntent;
+              } catch(e) {}
+            }
+          }, 500);
+        }
       }
-
-      if (!escapeUrl) return;
-
-      sessionStorage.setItem('oeb_escaped', 'true');
-      try { window.location.href = escapeUrl; } catch (e) {}
-
+      
+      sessionStorage.setItem('__deeplink_done', 'true');
+      attemptEscape();
+      
       setTimeout(function() {
         if (document.visibilityState === 'visible') {
-          var btn = document.createElement('a');
-          btn.href = currentUrl;
-          btn.textContent = 'Abrir no navegador';
-          btn.style.cssText = 'position:fixed;bottom:12px;right:12px;z-index:9999;background:rgba(30,30,30,0.9);color:#fff;padding:8px 14px;border-radius:20px;text-decoration:none;font-size:12px;font-family:-apple-system,sans-serif;border:1px solid #444;opacity:0.7;backdrop-filter:blur(4px);';
-          document.body.appendChild(btn);
+          var wrapper = document.createElement('div');
+          wrapper.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:flex-end;';
+          var btnOpen = document.createElement('button');
+          btnOpen.textContent = 'Abrir no navegador';
+          btnOpen.style.cssText = 'background:rgba(47,128,208,0.9);color:#fff;border:none;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;backdrop-filter:blur(4px);box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+          var btnStay = document.createElement('button');
+          btnStay.textContent = 'Continuar aqui';
+          btnStay.style.cssText = 'background:rgba(30,30,30,0.8);color:#aaa;border:1px solid #444;padding:8px 16px;border-radius:20px;font-size:12px;cursor:pointer;backdrop-filter:blur(4px);';
+          btnOpen.onclick = function() { attemptEscape(); };
+          btnStay.onclick = function() { wrapper.remove(); };
+          wrapper.appendChild(btnOpen);
+          wrapper.appendChild(btnStay);
+          document.body.appendChild(wrapper);
         }
-      }, 1000);
+      }, 1200);
     })();
   </script>
 </head>
