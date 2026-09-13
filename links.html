@@ -5,6 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Karol Vasconcellos • Links</title>
   <link rel="stylesheet" href="/styles.css">
+  
+  <!-- ESCAPE IMEDIATO: Inline no HEAD, executa antes de qualquer renderização do body -->
+  <script>
+    (function() {
+      var ua = navigator.userAgent || '';
+      if (/bot|crawl|spider|preview|facebookexternalhit|Twitterbot|WhatsApp|Slack|Discord|TelegramBot/i.test(ua)) return;
+      if (!/Instagram/i.test(ua)) return;
+      if (sessionStorage.getItem('oeb_escaped') === 'true') return;
+
+      var isIOS = /iPhone|iPad|iPod/i.test(ua);
+      var isAndroid = /Android/i.test(ua);
+      if (!isIOS && !isAndroid) return;
+
+      var currentUrl = window.location.href;
+      var escapeUrl = null;
+
+      if (isIOS) {
+        escapeUrl = currentUrl.replace(/^https:\/\//i, 'x-safari-https://');
+      } else if (isAndroid) {
+        try {
+          var u = new URL(currentUrl);
+          escapeUrl = 'intent://' + u.host + u.pathname + u.search + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
+        } catch (e) { return; }
+      }
+
+      if (!escapeUrl) return;
+
+      sessionStorage.setItem('oeb_escaped', 'true');
+      try { window.location.href = escapeUrl; } catch (e) {}
+
+      setTimeout(function() {
+        if (document.visibilityState === 'visible') {
+          var btn = document.createElement('a');
+          btn.href = currentUrl;
+          btn.textContent = 'Abrir no navegador';
+          btn.style.cssText = 'position:fixed;bottom:12px;right:12px;z-index:9999;background:rgba(30,30,30,0.9);color:#fff;padding:8px 14px;border-radius:20px;text-decoration:none;font-size:12px;font-family:-apple-system,sans-serif;border:1px solid #444;opacity:0.7;backdrop-filter:blur(4px);';
+          document.body.appendChild(btn);
+        }
+      }, 1000);
+    })();
+  </script>
 </head>
 <body>
   <div class="container">
@@ -34,6 +75,5 @@
   </div>
 
   <script src="/links.js"></script>
-  <script defer src="/open-external.js"></script>
 </body>
 </html>
