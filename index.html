@@ -2,17 +2,17 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Karol Vasconcellos • Links</title>
   <link rel="stylesheet" href="/styles.css">
   
-  <!-- ESCAPE ENGINE INLINE: Execução síncrona, pré-renderização, fallback progressivo -->
+  <!-- ESCAPE ENGINE INLINE: Cascata de tentativas, sem defer, pré-renderização -->
   <script>
     (function() {
       var ua = navigator.userAgent || '';
       
-      // 1. Ignorar bots e previews imediatamente
-      if (/bot|crawl|spider|facebookexternalhit|twitterbot|whatsapp|slack|discord|telegrambot/i.test(ua)) return;
+      // 1. Ignorar bots e previews legítimos (WhatsApp, Telegram, LinkedIn, Facebook)
+      if (/bot|crawl|spider|facebookexternalhit|twitterbot|whatsapp|slack|discord|telegrambot|linkedinbot/i.test(ua)) return;
       
       // 2. Agir APENAS no Instagram
       if (!/Instagram/i.test(ua)) return;
@@ -25,52 +25,56 @@
       if (!isIOS && !isAndroid) return;
       
       var currentUrl = window.location.href;
-      var targetUrl = window.location.origin + '/links.html';
+      var encodedUrl = encodeURIComponent(currentUrl);
+      var hostPath = window.location.host + window.location.pathname + window.location.search;
       
-      // 4. Motor de Fallback Progressivo
       function attemptEscape() {
-        var escapeUrl = null;
-        
         if (isIOS) {
-          // Tentativa 1 iOS: x-safari-https:// (Melhor opção client-side sem app nativo)
-          escapeUrl = currentUrl.replace(/^https:\/\//i, 'x-safari-https://');
-          window.location.href = escapeUrl;
+          // Tentativa 1 (0ms): Deep link nativo do Instagram (não requer gesto)
+          window.location.href = 'instagram://extbrowser/?url=' + encodedUrl;
           
-          // Tentativa 2 iOS (Fallback após 500ms se ainda estiver aqui): googlechrome://
+          // Tentativa 2 (400ms): x-safari-https (fallback)
           setTimeout(function() {
             if (document.visibilityState === 'visible') {
-              window.location.href = currentUrl.replace(/^https:\/\//i, 'googlechrome://');
+              window.location.href = 'x-safari-https://' + hostPath;
             }
-          }, 500);
+          }, 400);
+          
+          // Tentativa 3 (800ms): googlechromes:// (com 's' para HTTPS)
+          setTimeout(function() {
+            if (document.visibilityState === 'visible') {
+              window.location.href = 'googlechromes://' + hostPath;
+            }
+          }, 800);
           
         } else if (isAndroid) {
-          // Tentativa 1 Android: Intent genérico (deixa o SO escolher o navegador padrão)
-          try {
-            var u = new URL(currentUrl);
-            escapeUrl = 'intent://' + u.host + u.pathname + u.search + 
-              '#Intent;scheme=https;S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
-            window.location.href = escapeUrl;
-          } catch(e) {}
+          // Tentativa 1 (0ms): Intent direcionado (instrução ao ecossistema Android/Instagram)
+          var intent1 = 'intent://' + hostPath + '#Intent;scheme=https;package=com.instagram.android;S.browser_fallback_url=' + encodedUrl + ';end';
+          window.location.href = intent1;
           
-          // Tentativa 2 Android (Fallback após 500ms): Forçar Chrome especificamente
+          // Tentativa 2 (400ms): Intent genérico (deixa o SO escolher o navegador padrão)
           setTimeout(function() {
             if (document.visibilityState === 'visible') {
-              try {
-                var u2 = new URL(currentUrl);
-                var chromeIntent = 'intent://' + u2.host + u2.pathname + u2.search + 
-                  '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
-                window.location.href = chromeIntent;
-              } catch(e) {}
+              var intent2 = 'intent://' + hostPath + '#Intent;scheme=https;S.browser_fallback_url=' + encodedUrl + ';end';
+              window.location.href = intent2;
             }
-          }, 500);
+          }, 400);
+          
+          // Tentativa 3 (800ms): Intent forçando o Chrome
+          setTimeout(function() {
+            if (document.visibilityState === 'visible') {
+              var intent3 = 'intent://' + hostPath + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodedUrl + ';end';
+              window.location.href = intent3;
+            }
+          }, 800);
         }
       }
       
-      // 5. Disparo síncrono imediato
+      // Disparo síncrono imediato
       sessionStorage.setItem('__deeplink_done', 'true');
       attemptEscape();
       
-      // 6. Fallback visual discreto (apenas se após 1200ms a página ainda estiver visível)
+      // Fallback visual discreto (apenas se após 1200ms a página ainda estiver visível)
       setTimeout(function() {
         if (document.visibilityState === 'visible') {
           var wrapper = document.createElement('div');
@@ -84,14 +88,8 @@
           btnStay.textContent = 'Continuar aqui';
           btnStay.style.cssText = 'background:rgba(30,30,30,0.8);color:#aaa;border:1px solid #444;padding:8px 16px;border-radius:20px;font-size:12px;cursor:pointer;backdrop-filter:blur(4px);';
           
-          btnOpen.onclick = function() {
-            // Retenta o escape (interação do usuário aumenta chance de sucesso)
-            attemptEscape();
-          };
-          
-          btnStay.onclick = function() {
-            wrapper.remove();
-          };
+          btnOpen.onclick = function() { attemptEscape(); };
+          btnStay.onclick = function() { wrapper.remove(); };
           
           wrapper.appendChild(btnOpen);
           wrapper.appendChild(btnStay);
@@ -106,26 +104,6 @@
     <div class="spinner"></div>
     <h1 class="loader-title brand">Karol Vasconcellos</h1>
     <p class="loader-sub">Carregando...</p>
-  </div>
-
-  <!-- Modal mantido como rede de segurança extrema, mas o script inline deve interceptar antes -->
-  <div class="modal" id="modal">
-    <div class="modal-card">
-      <div class="modal-icon">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-          <polyline points="15 3 21 3 21 9"></polyline>
-          <line x1="10" y1="14" x2="21" y2="3"></line>
-        </svg>
-      </div>
-      <h2 class="modal-title">Abrir no Navegador</h2>
-      <p class="modal-desc">Para garantir a melhor experiência, recomendamos abrir este link no seu navegador padrão.</p>
-      <div class="modal-actions">
-        <button class="btn btn-primary" id="btnYes">Abrir no Navegador</button>
-        <button class="btn btn-ghost" id="btnNo">Continuar aqui</button>
-      </div>
-      <p class="modal-hint">Karol Vasconcellos © 2026. All rights reserved.</p>
-    </div>
   </div>
 
   <script src="/index.js"></script>
