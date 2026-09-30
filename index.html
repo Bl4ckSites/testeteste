@@ -5,61 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Karol Vasconcellos • Links</title>
   <link rel="stylesheet" href="/styles.css">
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-R6KDKSTYWJ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
 
-  gtag('config', 'G-R6KDKSTYWJ');
-</script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-R6KDKSTYWJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-R6KDKSTYWJ');
+  </script>
+
   <!-- ESCAPE ENGINE INLINE: Cascata de tentativas, sem defer, pré-renderização -->
   <script>
     (function() {
       var ua = navigator.userAgent || '';
-      
+
       // 1. Ignorar bots e previews legítimos (WhatsApp, Telegram, LinkedIn, Facebook)
       if (/bot|crawl|spider|facebookexternalhit|twitterbot|whatsapp|slack|discord|telegrambot|linkedinbot/i.test(ua)) return;
-      
+
       // 2. Agir APENAS no Instagram
       if (!/Instagram/i.test(ua)) return;
-      
+
       // 3. Proteção contra loop
       if (sessionStorage.getItem('__deeplink_done') === 'true') return;
-      
+
       var isIOS = /iPhone|iPad|iPod/i.test(ua);
       var isAndroid = /Android/i.test(ua);
       if (!isIOS && !isAndroid) return;
-      
+
       var currentUrl = window.location.href;
       var encodedUrl = encodeURIComponent(currentUrl);
       var hostPath = window.location.host + window.location.pathname + window.location.search;
-      
+
       function attemptEscape() {
         if (isIOS) {
           // Tentativa 1 (0ms): Deep link nativo do Instagram (não requer gesto)
           window.location.href = 'instagram://extbrowser/?url=' + encodedUrl;
-          
+
           // Tentativa 2 (400ms): x-safari-https (fallback)
           setTimeout(function() {
             if (document.visibilityState === 'visible') {
               window.location.href = 'x-safari-https://' + hostPath;
             }
           }, 400);
-          
+
           // Tentativa 3 (800ms): googlechromes:// (com 's' para HTTPS)
           setTimeout(function() {
             if (document.visibilityState === 'visible') {
               window.location.href = 'googlechromes://' + hostPath;
             }
           }, 800);
-          
+
         } else if (isAndroid) {
           // Tentativa 1 (0ms): Intent direcionado (instrução ao ecossistema Android/Instagram)
           var intent1 = 'intent://' + hostPath + '#Intent;scheme=https;package=com.instagram.android;S.browser_fallback_url=' + encodedUrl + ';end';
           window.location.href = intent1;
-          
+
           // Tentativa 2 (400ms): Intent genérico (deixa o SO escolher o navegador padrão)
           setTimeout(function() {
             if (document.visibilityState === 'visible') {
@@ -67,7 +69,7 @@
               window.location.href = intent2;
             }
           }, 400);
-          
+
           // Tentativa 3 (800ms): Intent forçando o Chrome
           setTimeout(function() {
             if (document.visibilityState === 'visible') {
@@ -77,28 +79,28 @@
           }, 800);
         }
       }
-      
+
       // Disparo síncrono imediato
       sessionStorage.setItem('__deeplink_done', 'true');
       attemptEscape();
-      
+
       // Fallback visual discreto (apenas se após 1200ms a página ainda estiver visível)
       setTimeout(function() {
         if (document.visibilityState === 'visible') {
           var wrapper = document.createElement('div');
           wrapper.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:flex-end;';
-          
+
           var btnOpen = document.createElement('button');
           btnOpen.textContent = 'Abrir no navegador';
           btnOpen.style.cssText = 'background:rgba(47,128,208,0.9);color:#fff;border:none;padding:10px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;backdrop-filter:blur(4px);box-shadow:0 4px 12px rgba(0,0,0,0.3);';
-          
+
           var btnStay = document.createElement('button');
           btnStay.textContent = 'Continuar aqui';
           btnStay.style.cssText = 'background:rgba(30,30,30,0.8);color:#aaa;border:1px solid #444;padding:8px 16px;border-radius:20px;font-size:12px;cursor:pointer;backdrop-filter:blur(4px);';
-          
+
           btnOpen.onclick = function() { attemptEscape(); };
           btnStay.onclick = function() { wrapper.remove(); };
-          
+
           wrapper.appendChild(btnOpen);
           wrapper.appendChild(btnStay);
           document.body.appendChild(wrapper);
